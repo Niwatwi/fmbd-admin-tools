@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ปรับแต่ง Font และ Background ให้ดูสะอาดตา (Minimal) */
+body {
+  @apply bg-gray-50 text-slate-900 font-sans;
+}

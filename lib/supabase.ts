@@ -1,0 +1,8 @@
+// lib/supabase.ts
+import { createBrowserClient } from "@supabase/ssr";
+
+// สร้างตัวแปรเดียวและ Export ออกไปใช้งานร่วมกัน
+export const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+);
