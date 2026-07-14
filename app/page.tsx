@@ -2,7 +2,7 @@
 // 1. นำเข้าคอมโพเนนต์สำหรับลิงก์ข้ามหน้า
 import Link from "next/link";
 
-// 2. นำเข้าไอคอนทั้งหมดที่จำเป็นต้องใช้ในหน้านี้ (เพิ่ม ClipboardList สำหรับระบบคัดกรองรายงาน)
+// 2. นำเข้าไอคอนทั้งหมดที่จำเป็นต้องใช้ในหน้านี้ (เพิ่ม CalendarDays สำหรับระบบจัดการแผนงาน)
 import {
   UserPlus,
   Users,
@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Banknote,
   ClipboardList,
+  CalendarDays, // 🟢 เพิ่มไอคอนสำหรับ Work Plan
 } from "lucide-react";
 
 export default function AdminDashboardHome() {
@@ -114,7 +115,7 @@ export default function AdminDashboardHome() {
               </div>
             </Link>
 
-            {/* 🟢 ปุ่มที่ 4 (เพิ่มใหม่): หน้าตรวจสอบเอกสารงานและโอทีพนักงาน (Call Visit Report) */}
+            {/* ปุ่มที่ 4: หน้าตรวจสอบเอกสารงานและโอทีพนักงาน (Call Visit Report) */}
             <Link
               href="/report"
               className="group p-6 bg-white border border-slate-100 rounded-3xl shadow-md shadow-slate-200/40 hover:shadow-xl hover:border-purple-400 hover:-translate-y-1 transition-all duration-300 flex items-center justify-between"
@@ -138,8 +139,32 @@ export default function AdminDashboardHome() {
               </div>
             </Link>
 
+            {/* 🟢 ปุ่มที่ 5 (เพิ่มใหม่): หน้าอัปโหลด Work Plan ประจำสัปดาห์ */}
+            <Link
+              href="/work-plan"
+              className="group p-6 bg-white border border-slate-100 rounded-3xl shadow-md shadow-slate-200/40 hover:shadow-xl hover:border-sky-400 hover:-translate-y-1 transition-all duration-300 flex items-center justify-between"
+            >
+              <div className="flex items-center gap-5">
+                <div className="w-14 h-14 bg-gradient-to-br from-sky-400 to-blue-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-sky-200 transition-transform group-hover:scale-105">
+                  <CalendarDays size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
+                    Bulk Work Plan Importer
+                  </h3>
+                  <p className="text-slate-400 text-sm mt-0.5">
+                    อัปโหลดไฟล์แผนงานปฏิบัติงานหลักพนักงาน (.csv)
+                    เพื่อกระจายข้อมูลตารางงานให้คู่ค้า
+                  </p>
+                </div>
+              </div>
+              <div className="text-slate-300 group-hover:text-sky-500 transition-colors pl-4">
+                <ChevronRight size={20} />
+              </div>
+            </Link>
+
             {/* ช่องสำหรับวางโปรเจกต์อื่นๆ เพิ่มเติมในอนาคต */}
-            <div className="p-6 bg-white border border-slate-200/60 border-dashed rounded-3xl flex items-center gap-5 opacity-60 md:col-span-2">
+            <div className="p-6 bg-white border border-slate-200/60 border-dashed rounded-3xl flex items-center gap-5 opacity-60">
               <div className="w-14 h-14 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center">
                 <Layers size={24} />
               </div>
@@ -148,8 +173,8 @@ export default function AdminDashboardHome() {
                   Future Project Extensions
                 </h3>
                 <p className="text-slate-400 text-sm mt-0.5">
-                  ระบบเปรียบเทียบ Workplan (Plan vs Actual)
-                  และส่วนขยายระบบงานอื่น ๆ ในอนาคต
+                  ระบบเปรียบเทียบข้อมูลแผนงานจริง (Plan vs Actual)
+                  และส่วนขยายแดชบอร์ดสรุปสถิติเชิงลึก
                 </p>
               </div>
             </div>
