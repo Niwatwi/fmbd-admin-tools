@@ -1,0 +1,17 @@
+{
+    // 🎯 เพิ่มคำศัพท์เฉพาะทางเข้าระบบดิกชันนารีของโปรเจกต์นี้
+    "cSpell.words": [
+        "supabase",
+        "payroll",
+        "fmbd",
+        "intertrade",
+        "riverpro",
+        "lucide",
+        "Swal",
+        "sweetalert"
+    ],
+    // 🎯 ใช้ Regular Expression สั่งให้ cSpell "ข้ามการตรวจตัวอักษรภาษาไทยทั้งหมด" (ก-ๆ)
+    "cSpell.ignoreRegExpList": [
+        "[\\u0e00-\\u0e7f]+"
+    ]
+}
