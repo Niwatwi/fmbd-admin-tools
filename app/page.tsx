@@ -2,7 +2,7 @@
 // 1. นำเข้าคอมโพเนนต์สำหรับลิงก์ข้ามหน้า
 import Link from "next/link";
 
-// 2. นำเข้าไอคอนทั้งหมดที่จำเป็นต้องใช้ในหน้านี้ (เพิ่ม CalendarDays สำหรับระบบจัดการแผนงาน)
+// 2. นำเข้าไอคอนทั้งหมดที่จำเป็นต้องใช้ในหน้านี้ (เพิ่ม ExternalLink และ Sparkles สำหรับโปรเจกต์ Push Girl)
 import {
   UserPlus,
   Users,
@@ -12,39 +12,73 @@ import {
   ChevronRight,
   Banknote,
   ClipboardList,
-  CalendarDays, // 🟢 เพิ่มไอคอนสำหรับ Work Plan
+  CalendarDays,
+  ExternalLink,
+  Sparkles,
 } from "lucide-react";
 
 export default function AdminDashboardHome() {
   return (
-    <div className="min-h-screen bg-slate-50 p-6 md:p-12 font-sans text-slate-800">
+    <div className="min-h-screen bg-orange-300 p-6 md:p-12 font-sans text-slate-800">
       <div className="max-w-5xl mx-auto">
         {/* หัวหน้าเว็บภาพรวม */}
         <header className="mb-12 flex items-center justify-between text-left">
           <div>
-            <span className="text-xs font-extrabold text-blue-600 tracking-wider bg-blue-50 px-3 py-1.5 rounded-full uppercase">
+            <span className="text-xs font-extrabold text-white tracking-wider bg-blue-700 px-3 py-1.5 rounded-full uppercase">
               System Control Panel
             </span>
             <h1 className="text-4xl font-black text-slate-900 tracking-tight mt-3">
               FMBD Admin Tools
             </h1>
-            <p className="text-slate-500 mt-1.5">
+            <p className="text-red-600 mt-1.5">
               ศูนย์ควบคุมและบริหารจัดการทุกระบบงานภายในเครือข่าย
             </p>
           </div>
-          <div className="p-3 bg-white rounded-2xl border shadow-sm text-slate-400 hover:text-slate-600 cursor-pointer transition">
+          <div className="p-3 bg-white rounded-2xl border shadow-xs text-slate-400 hover:text-slate-600 cursor-pointer transition">
             <Settings size={22} />
           </div>
         </header>
 
         {/* ตารางเมนูฟังก์ชันงานของระบบ */}
         <div className="text-left">
-          <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+          <h2 className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-6 flex items-center gap-2">
             <LayoutGrid size={16} /> Available Modules & Management
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* ปุ่มที่ 1: หน้า Create User */}
+            {/* 🔴 ปุ่มที่ 1 (ใหม่): RVI PUSH GIRL PROJECTS */}
+            <a
+              href="https://fmbd-push-girl-tools.vercel.app/admin"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group p-6 bg-white border border-slate-100 rounded-3xl shadow-md shadow-slate-200/40 hover:shadow-xl hover:border-rose-400 hover:-translate-y-1 transition-all duration-300 flex items-center justify-between col-span-1 md:col-span-2 bg-gradient-to-r from-white via-white to-rose-50/30"
+            >
+              <div className="flex items-center gap-5">
+                <div className="w-14 h-14 bg-gradient-to-br from-rose-500 to-pink-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-rose-200 transition-transform group-hover:scale-105">
+                  <Sparkles size={24} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-black text-slate-900 group-hover:text-rose-600 transition-colors">
+                      RVI PUSH GIRL PROJECTS
+                    </h3>
+                    <span className="text-[10px] font-bold px-2 py-0.5 bg-rose-100 text-rose-700 rounded-full border border-rose-200">
+                      EXTERNAL APP
+                    </span>
+                  </div>
+                  <p className="text-slate-400 text-sm mt-0.5">
+                    ศูนย์ควบคุมพนักงาน PG: การลงเวลา, สรุปเงินเดือน/ค่าแรงรายวัน
+                    และระบบจัดการ Target รายสาขา
+                  </p>
+                </div>
+              </div>
+              <div className="text-slate-300 group-hover:text-rose-500 transition-colors pl-4 flex items-center gap-1 font-bold text-xs">
+                <span>เปิดแอป</span>
+                <ExternalLink size={18} />
+              </div>
+            </a>
+
+            {/* ปุ่มที่ 2: หน้า Create User */}
             <Link
               href="/create-user"
               className="group p-6 bg-white border border-slate-100 rounded-3xl shadow-md shadow-slate-200/40 hover:shadow-xl hover:border-blue-400 hover:-translate-y-1 transition-all duration-300 flex items-center justify-between"
@@ -67,7 +101,7 @@ export default function AdminDashboardHome() {
               </div>
             </Link>
 
-            {/* ปุ่มที่ 2: หน้า User Database & Control */}
+            {/* ปุ่มที่ 3: หน้า User Database & Control */}
             <Link
               href="/users"
               className="group p-6 bg-white border border-slate-100 rounded-3xl shadow-md shadow-slate-200/40 hover:shadow-xl hover:border-emerald-400 hover:-translate-y-1 transition-all duration-300 flex items-center justify-between"
@@ -91,7 +125,7 @@ export default function AdminDashboardHome() {
               </div>
             </Link>
 
-            {/* ปุ่มที่ 3: หน้าเอกสารใบปะหน้าค่าใช้จ่าย (Payroll Summary) */}
+            {/* ปุ่มที่ 4: หน้าเอกสารใบปะหน้าค่าใช้จ่าย (Payroll Summary) */}
             <Link
               href="/payroll"
               className="group p-6 bg-white border border-slate-100 rounded-3xl shadow-md shadow-slate-200/40 hover:shadow-xl hover:border-orange-400 hover:-translate-y-1 transition-all duration-300 flex items-center justify-between"
@@ -115,7 +149,7 @@ export default function AdminDashboardHome() {
               </div>
             </Link>
 
-            {/* ปุ่มที่ 4: หน้าตรวจสอบเอกสารงานและโอทีพนักงาน (Call Visit Report) */}
+            {/* ปุ่มที่ 5: หน้าตรวจสอบเอกสารงานและโอทีพนักงาน (Call Visit Report) */}
             <Link
               href="/report"
               className="group p-6 bg-white border border-slate-100 rounded-3xl shadow-md shadow-slate-200/40 hover:shadow-xl hover:border-purple-400 hover:-translate-y-1 transition-all duration-300 flex items-center justify-between"
@@ -139,7 +173,7 @@ export default function AdminDashboardHome() {
               </div>
             </Link>
 
-            {/* 🟢 ปุ่มที่ 5 (เพิ่มใหม่): หน้าอัปโหลด Work Plan ประจำสัปดาห์ */}
+            {/* ปุ่มที่ 6: หน้าอัปโหลด Work Plan ประจำสัปดาห์ */}
             <Link
               href="/work-plan"
               className="group p-6 bg-white border border-slate-100 rounded-3xl shadow-md shadow-slate-200/40 hover:shadow-xl hover:border-sky-400 hover:-translate-y-1 transition-all duration-300 flex items-center justify-between"
@@ -162,22 +196,6 @@ export default function AdminDashboardHome() {
                 <ChevronRight size={20} />
               </div>
             </Link>
-
-            {/* ช่องสำหรับวางโปรเจกต์อื่นๆ เพิ่มเติมในอนาคต */}
-            <div className="p-6 bg-white border border-slate-200/60 border-dashed rounded-3xl flex items-center gap-5 opacity-60">
-              <div className="w-14 h-14 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center">
-                <Layers size={24} />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-500">
-                  Future Project Extensions
-                </h3>
-                <p className="text-slate-400 text-sm mt-0.5">
-                  ระบบเปรียบเทียบข้อมูลแผนงานจริง (Plan vs Actual)
-                  และส่วนขยายแดชบอร์ดสรุปสถิติเชิงลึก
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
