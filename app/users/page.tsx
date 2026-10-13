@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { confirmAction, showError, showSuccess } from "@/lib/notifications";
 import {
   Search,
   Filter,
@@ -40,7 +41,7 @@ export default function UserListPage() {
       .order("id", { ascending: false });
 
     if (error) {
-      alert("ดึงข้อมูลไม่สำเร็จ: " + error.message);
+      await showError("ดึงข้อมูลไม่สำเร็จ", error.message);
     } else {
       setUsers(data || []);
     }
@@ -59,7 +60,7 @@ export default function UserListPage() {
       .eq("id", id);
 
     if (error) {
-      alert("อัปเดตสถานะไม่สำเร็จ: " + error.message);
+      await showError("อัปเดตสถานะไม่สำเร็จ", error.message);
     } else {
       // อัปเดต State ในหน้าจอทันที ไม่ต้องโหลดหน้าใหม่
       setUsers(
@@ -72,17 +73,23 @@ export default function UserListPage() {
 
   // 3. ฟังก์ชันลบพนักงานออกจากระบบ
   const deleteUser = async (id: number, name: string) => {
-    if (confirm(`คุณแน่ใจใช่ไหมที่จะลบข้อมูลของ "${name}" ออกจากระบบถาวร?`)) {
+    const confirmation = await confirmAction(
+      "ยืนยันการลบพนักงาน",
+      `คุณแน่ใจใช่ไหมที่จะลบข้อมูลของ "${name}" ออกจากระบบถาวร?`,
+      "ลบข้อมูล",
+    );
+
+    if (confirmation.isConfirmed) {
       const { error } = await supabase
         .from("user_profiles")
         .delete()
         .eq("id", id);
 
       if (error) {
-        alert("ลบข้อมูลไม่สำเร็จ: " + error.message);
+        await showError("ลบข้อมูลไม่สำเร็จ", error.message);
       } else {
         setUsers(users.filter((u) => u.id !== id));
-        alert("ลบข้อมูลเรียบร้อยแล้ว");
+        await showSuccess("ลบข้อมูลเรียบร้อยแล้ว");
       }
     }
   };

@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
+import { showError, showWarning } from "@/lib/notifications";
 import {
   Search,
   Printer,
@@ -118,8 +119,9 @@ export default function PayrollSummaryPage() {
   // 🔄 2. ฟังก์ชันประมวลผลดึงประวัติงาน + ดึงค่าอัตโนมัติจากตารางหลังบ้านแบบแก้ปัญหาเรื่องช่องว่างของตัวอักษร
   const handleFetch = async () => {
     if (!filters.empId && !filters.empName) {
-      alert(
-        "กรุณาเลือก รหัสพนักงาน หรือ ชื่อพนักงาน จากรายการ Dropdown เพื่อประมวลผลครับ",
+      await showWarning(
+        "กรุณาเลือกพนักงาน",
+        "เลือกรหัสพนักงานหรือชื่อพนักงานจากรายการเพื่อประมวลผล",
       );
       return;
     }
@@ -206,11 +208,17 @@ export default function PayrollSummaryPage() {
           setEmpType("daily");
         }
       } else {
-        alert("ไม่พบข้อมูลประวัติการทำงานและค่าเดินทางในช่วงเวลาดังกล่าวครับ");
+        await showWarning(
+          "ไม่พบข้อมูล",
+          "ไม่พบประวัติการทำงานและค่าเดินทางในช่วงเวลาที่เลือก",
+        );
       }
     } catch (err: any) {
       console.error("Payroll querying error:", err.message);
-      alert("เกิดข้อผิดพลาดในการดึงประวัติบัญชี");
+      await showError(
+        "ดึงประวัติไม่สำเร็จ",
+        "เกิดข้อผิดพลาดในการดึงประวัติบัญชี",
+      );
     } finally {
       setLoading(false);
     }

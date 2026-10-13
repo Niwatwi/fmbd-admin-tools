@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 // เปลี่ยนจาก import เดิม เป็นบรรทัดนี้ครับ
 import { createBrowserClient } from "@supabase/ssr";
+import { showError } from "@/lib/notifications";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -23,7 +24,7 @@ export default function LoginPage() {
     });
 
     if (error) {
-      alert("Login พลาด: " + error.message);
+      await showError("เข้าสู่ระบบไม่สำเร็จ", error.message);
     } else {
       router.push("/");
       router.refresh();

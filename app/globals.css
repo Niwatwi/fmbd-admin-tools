@@ -6,3 +6,16 @@
 body {
   @apply bg-gray-50 text-slate-900 font-sans;
 }
+
+.swal2-popup {
+  border-radius: 1rem;
+}
+
+.swal2-title {
+  font-size: 1.25rem;
+}
+
+.swal2-styled {
+  border-radius: 0.625rem;
+  padding: 0.7rem 1.25rem;
+}

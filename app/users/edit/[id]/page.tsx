@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter, useParams } from "next/navigation";
+import { showError, showSuccess } from "@/lib/notifications";
 import {
   Pencil,
   ArrowLeft,
@@ -60,7 +61,7 @@ export default function EditUserPage() {
         .single();
 
       if (error) {
-        alert("ไม่พบข้อมูลพนักงาน: " + error.message);
+        await showError("ไม่พบข้อมูลพนักงาน", error.message);
         router.push("/users");
       } else if (data) {
         setFormData({
@@ -103,7 +104,7 @@ export default function EditUserPage() {
         videoRef.current.srcObject = stream;
       }
     } catch (err) {
-      alert("ไม่สามารถเข้าถึงกล้องถ่ายรูปได้");
+      await showError("เปิดกล้องไม่สำเร็จ", "ไม่สามารถเข้าถึงกล้องถ่ายรูปได้");
       setIsCameraActive(false);
     }
   };
@@ -196,11 +197,11 @@ export default function EditUserPage() {
 
       if (updateError) throw updateError;
 
-      alert("อัปเดตข้อมูลพนักงานเรียบร้อยแล้ว!");
+      await showSuccess("อัปเดตข้อมูลพนักงานเรียบร้อยแล้ว");
       router.push("/users");
       router.refresh();
     } catch (error: any) {
-      alert("เกิดข้อผิดพลาด: " + error.message);
+      await showError("เกิดข้อผิดพลาด", error.message);
     } finally {
       setLoading(false);
     }

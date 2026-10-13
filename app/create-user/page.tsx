@@ -2,6 +2,7 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { showError, showSuccess } from "@/lib/notifications";
 import {
   UserPlus,
   ArrowLeft,
@@ -59,7 +60,10 @@ export default function CreateUserPage() {
       }
     } catch (err) {
       console.error("ไม่สามารถเปิดกล้องได้:", err);
-      alert("ไม่สามารถเข้าถึงกล้องถ่ายรูปได้ กรุณาตรวจสอบสิทธิ์การอนุญาต");
+      await showError(
+        "เปิดกล้องไม่สำเร็จ",
+        "ไม่สามารถเข้าถึงกล้องถ่ายรูปได้ กรุณาตรวจสอบสิทธิ์การอนุญาต",
+      );
       setIsCameraActive(false);
     }
   };
@@ -166,12 +170,15 @@ export default function CreateUserPage() {
 
       if (insertError) throw insertError;
 
-      alert("บันทึกข้อมูลพนักงานและอัปโหลดรูปภาพสำเร็จ!");
+      await showSuccess(
+        "บันทึกข้อมูลสำเร็จ",
+        "บันทึกข้อมูลพนักงานและอัปโหลดรูปภาพเรียบร้อยแล้ว",
+      );
       router.push("/");
       router.refresh();
     } catch (error: any) {
       console.error(error);
-      alert("เกิดข้อผิดพลาด: " + error.message);
+      await showError("เกิดข้อผิดพลาด", error.message);
     } finally {
       setLoading(false);
     }

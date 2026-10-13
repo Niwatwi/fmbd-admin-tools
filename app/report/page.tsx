@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
-import Swal from "sweetalert2";
+import { showError, showSuccessToast, showWarning } from "@/lib/notifications";
 import {
   Calendar,
   User,
@@ -261,10 +261,7 @@ export default function AdminReportPage() {
     const amount = parseFloat(expenseInputs[key] || "0");
 
     if (isNaN(amount) || amount < 0) {
-      return Swal.fire({
-        icon: "warning",
-        title: "กรุณากรอกจำนวนเงินให้ถูกต้อง",
-      });
+      return showWarning("กรุณากรอกจำนวนเงินให้ถูกต้อง");
     }
 
     try {
@@ -279,16 +276,9 @@ export default function AdminReportPage() {
 
       if (error) throw error;
 
-      Swal.fire({
-        icon: "success",
-        title: "บันทึกค่าเดินทางสำเร็จ",
-        position: "top-end",
-        toast: true,
-        showConfirmButton: false,
-        timer: 1500,
-      });
+      showSuccessToast("บันทึกค่าเดินทางสำเร็จ");
     } catch (err: any) {
-      Swal.fire({ icon: "error", title: "บันทึกไม่สำเร็จ", text: err.message });
+      await showError("บันทึกไม่สำเร็จ", err.message);
     } finally {
       setIsSavingExpense(null);
     }

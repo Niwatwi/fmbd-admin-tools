@@ -1,4 +1,5 @@
 import "./globals.css"; // ต้องอยู่บรรทัดบนสุดครับ
+import "sweetalert2/dist/sweetalert2.min.css";
 import Navbar from "../components/Navbar";
 
 export default function RootLayout({

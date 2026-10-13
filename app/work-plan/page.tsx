@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import Swal from "sweetalert2";
+import { showError, showSuccess } from "@/lib/notifications";
 import {
   FileSpreadsheet,
   Upload,
@@ -110,20 +110,18 @@ export default function ActualWorkPlanImport() {
       const { error } = await supabase.from("actual_work_plans").insert(plans);
       if (error) throw error;
 
-      Swal.fire({
-        title: "อัปโหลดสำเร็จ!",
-        text: `ระบบทำการซิงค์ตารางแผนงานเวอร์ชันใหม่จำนวน ${plans.length} แถวเรียบร้อยครับ`,
-        icon: "success",
-      });
+      await showSuccess(
+        "อัปโหลดสำเร็จ",
+        `ซิงค์ตารางแผนงานเวอร์ชันใหม่จำนวน ${plans.length} แถวเรียบร้อยแล้ว`,
+      );
 
       setPlans([]);
       setFileName("");
     } catch (err: any) {
       console.error("Upload failure:", err.message);
-      Swal.fire(
+      await showError(
         "บันทึกไม่สำเร็จ",
-        "กรุณาตรวจสอบโครงสร้างตารางหลังบ้านใน Supabase อีกครั้งครับ",
-        "error",
+        "กรุณาตรวจสอบโครงสร้างตารางหลังบ้านใน Supabase อีกครั้ง",
       );
     } finally {
       setLoading(false);
