@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Users, LayoutDashboard, LogOut } from "lucide-react";
+import { LogOut, Store } from "lucide-react";
 // Import จากตัวเชื่อมกลางของเรา
 import { supabase } from "@/lib/supabase";
 
@@ -29,6 +29,12 @@ export default function Navbar() {
             </Link>
             <Link href="/create-user" className="hover:text-white">
               Users
+            </Link>
+            <Link
+              href="/stores"
+              className="flex items-center gap-1.5 hover:text-white"
+            >
+              <Store size={15} /> ร้านค้า
             </Link>
           </div>
         </div>

@@ -104,7 +104,7 @@ export default function UserListPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-blue-100 py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-6xl mx-auto">
         {/* ส่วนหัวของหน้าจอ */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">

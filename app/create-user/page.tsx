@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { showError, showSuccess } from "@/lib/notifications";
@@ -14,9 +14,74 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+interface PgStoreOption {
+  id: number;
+  store_code: string;
+  store_name: string;
+  area: string;
+  company_tag: string;
+  mer_code: string | null;
+  chanel: string | null;
+  account: string | null;
+  province: string | null;
+}
+
+const standardAreas = [
+  "ADMIN",
+  "OFFICE",
+  "CUSTOMER",
+  "PG",
+  "PGTO01",
+  "PGBC01",
+  "PGBC02",
+  "PGBC03",
+  "PGBC04",
+  "PGBC05",
+  "PGBC06",
+  "PGBC07",
+  "PGBC08",
+  "PGBC09",
+  "PGBC10",
+  "K01",
+  "K02",
+  "K03",
+  "K04",
+  "K05",
+  "K06",
+  "K07",
+  "K08",
+  "K09",
+  "K10",
+];
+
+const standardCompanyTags = [
+  "ADMIN",
+  "CUSTOMER",
+  "OFFICE",
+  "KOE",
+  "MER",
+  "COMMANDO",
+  "BA",
+  "PG",
+  "PGTO01",
+  "PGBC01",
+  "PGBC02",
+  "PGBC03",
+  "PGBC04",
+  "PGBC05",
+  "PGBC06",
+  "PGBC07",
+  "PGBC08",
+  "PGBC09",
+  "PGBC10",
+];
+
 export default function CreateUserPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [pgStores, setPgStores] = useState<PgStoreOption[]>([]);
+  const [pgStoresLoading, setPgStoresLoading] = useState(true);
+  const [selectedPgStoreId, setSelectedPgStoreId] = useState("");
 
   // States สำหรับระเบียบข้อมูลฟอร์ม
   const [formData, setFormData] = useState({
@@ -43,6 +108,65 @@ export default function CreateUserPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  useEffect(() => {
+    const loadPgStores = async () => {
+      setPgStoresLoading(true);
+      const { data, error } = await supabase
+        .from("pg_stores")
+        .select(
+          "id, store_code, store_name, area, company_tag, mer_code, chanel, account, province",
+        )
+        .eq("is_active", true)
+        .order("area", { ascending: true })
+        .order("store_name", { ascending: true });
+
+      if (error) {
+        await showError("โหลดตัวเลือกร้านค้าไม่สำเร็จ", error.message);
+      } else {
+        setPgStores((data || []) as PgStoreOption[]);
+      }
+      setPgStoresLoading(false);
+    };
+
+    void loadPgStores();
+  }, []);
+
+  const areaOptions = useMemo(
+    () =>
+      Array.from(
+        new Set([
+          ...standardAreas,
+          ...pgStores.map((store) => store.area.trim()).filter(Boolean),
+        ]),
+      ).sort((first, second) => first.localeCompare(second)),
+    [pgStores],
+  );
+
+  const companyTagOptions = useMemo(
+    () =>
+      Array.from(
+        new Set([
+          ...standardCompanyTags,
+          ...pgStores.map((store) => store.company_tag.trim()).filter(Boolean),
+        ]),
+      ).sort((first, second) => first.localeCompare(second)),
+    [pgStores],
+  );
+
+  const isKnownCompanyTag = companyTagOptions.includes(formData.company_tag);
+
+  const handlePgStoreChange = (storeId: string) => {
+    setSelectedPgStoreId(storeId);
+    const store = pgStores.find((item) => String(item.id) === storeId);
+    if (!store) return;
+
+    setFormData((current) => ({
+      ...current,
+      area: store.area,
+      company_tag: store.company_tag,
+    }));
+  };
 
   // 1. ฟังก์ชันเปิดกล้องถ่ายภาพ
   const startCamera = async () => {
@@ -185,7 +309,7 @@ export default function CreateUserPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-blue-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         {/* Header แผงควบคุมด้านบน */}
         <div className="flex items-center justify-between mb-8">
@@ -309,47 +433,49 @@ export default function CreateUserPage() {
               Account Authorization
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
+                  เลือกกลุ่มร้านค้าจาก pg_stores (ไม่บังคับ)
+                </label>
+                <select
+                  value={selectedPgStoreId}
+                  disabled={pgStoresLoading || pgStores.length === 0}
+                  onChange={(event) => handlePgStoreChange(event.target.value)}
+                  className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition disabled:opacity-60"
+                >
+                  <option value="">
+                    {pgStoresLoading
+                      ? "กำลังโหลดกลุ่มร้านค้า..."
+                      : pgStores.length === 0
+                        ? "ไม่มีร้านค้าที่เปิดใช้งาน"
+                        : "เลือกกลุ่มร้านค้าเพื่อเติม Area และ Company Tag"}
+                  </option>
+                  {pgStores.map((store) => (
+                    <option key={store.id} value={store.id}>
+                      {store.area} · {store.company_tag} · {store.store_code} -{" "}
+                      {store.store_name}
+                      {store.mer_code ? ` (${store.mer_code})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
                   Area (เขตพื้นที่)
                 </label>
                 <select
+                  required
                   className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
                   value={formData.area}
-                  onChange={(e) =>
-                    setFormData({ ...formData, area: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setSelectedPgStoreId("");
+                    setFormData({ ...formData, area: e.target.value });
+                  }}
                 >
-                  {[
-                    "--- เลือกเขต ---",
-                    "ADMIN",
-                    "OFFICE",
-                    "CUSTOMER",
-                    "PG",
-                    "PGTO01",
-                    "PGBC01",
-                    "PGBC02",
-                    "PGBC03",
-                    "PGBC04",
-                    "PGBC05",
-                    "PGBC06",
-                    "PGBC07",
-                    "PGBC08",
-                    "PGBC09",
-                    "PGBC10",
-                    "K01",
-                    "K02",
-                    "K03",
-                    "K04",
-                    "K05",
-                    "K06",
-                    "K07",
-                    "K08",
-                    "K09",
-                    "K10",
-                  ].map((item) => (
-                    <option key={item} value={item}>
-                      {item}
+                  <option value="">--- เลือกเขต ---</option>
+                  {areaOptions.map((area) => (
+                    <option key={area} value={area}>
+                      {area}
                     </option>
                   ))}
                 </select>
@@ -436,32 +562,9 @@ export default function CreateUserPage() {
                 <select
                   className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
                   // ถ้าไม่ได้เลือกโหมดพิมพ์เอง ให้ใช้ค่าจาก formData แต่ถ้าเลือกโหมดพิมพ์เองให้ค้างค่าตัวเลือกไว้ที่พิมพ์เอง
-                  value={
-                    [
-                      "ADMIN",
-                      "CUSTOMER",
-                      "OFFICE",
-                      "KOE",
-                      "MER",
-                      "COMMANDO",
-                      "BA",
-                      "PG",
-                      "PGTO01",
-                      "PGBC01",
-                      "PGBC02",
-                      "PGBC03",
-                      "PGBC04",
-                      "PGBC05",
-                      "PGBC06",
-                      "PGBC07",
-                      "PGBC08",
-                      "PGBC09",
-                      "PGBC10",
-                    ].includes(formData.company_tag)
-                      ? formData.company_tag
-                      : "CUSTOM"
-                  }
+                  value={isKnownCompanyTag ? formData.company_tag : "CUSTOM"}
                   onChange={(e) => {
+                    setSelectedPgStoreId("");
                     if (e.target.value === "CUSTOM") {
                       // ถ้าเลือก พิมพ์เอง ให้ล้างค่าช่องพิมพ์รอไว้
                       setFormData({ ...formData, company_tag: "" });
@@ -470,27 +573,7 @@ export default function CreateUserPage() {
                     }
                   }}
                 >
-                  {[
-                    "ADMIN",
-                    "CUSTOMER",
-                    "OFFICE",
-                    "KOE",
-                    "MER",
-                    "COMMANDO",
-                    "BA",
-                    "PG",
-                    "PGTO01",
-                    "PGBC01",
-                    "PGBC02",
-                    "PGBC03",
-                    "PGBC04",
-                    "PGBC05",
-                    "PGBC06",
-                    "PGBC07",
-                    "PGBC08",
-                    "PGBC09",
-                    "PGBC10",
-                  ].map((tag) => (
+                  {companyTagOptions.map((tag) => (
                     <option key={tag} value={tag}>
                       {tag}
                     </option>
@@ -499,27 +582,7 @@ export default function CreateUserPage() {
                 </select>
 
                 {/* ช่องพิมพ์จะปรากฏขึ้นมาอัตโนมัติเมื่อกดเลือก "อื่นๆ (พิมพ์ระบุเอง...)" */}
-                {![
-                  "ADMIN",
-                  "CUSTOMER",
-                  "OFFICE",
-                  "KOE",
-                  "MER",
-                  "COMMANDO",
-                  "BA",
-                  "PG",
-                  "PGTO01",
-                  "PGBC01",
-                  "PGBC02",
-                  "PGBC03",
-                  "PGBC04",
-                  "PGBC05",
-                  "PGBC06",
-                  "PGBC07",
-                  "PGBC08",
-                  "PGBC09",
-                  "PGBC10",
-                ].includes(formData.company_tag) && (
+                {!isKnownCompanyTag && (
                   <input
                     type="text"
                     required
