@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+﻿/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -26,6 +26,7 @@ interface PgStore {
   is_active: boolean;
   created_at: string;
   mer_code: string | null;
+  user: string | null;
   chanel: string | null;
   account: string | null;
   province: string | null;
@@ -38,10 +39,16 @@ interface PgStore {
   longitude: number | null;
 }
 
+interface UserOption {
+  username: string;
+  display_name: string | null;
+}
+
 interface StoreForm {
   company_tag: string;
   is_active: boolean;
   mer_code: string;
+  user: string;
 }
 
 interface StoreDirectoryEntry {
@@ -65,6 +72,7 @@ const initialForm: StoreForm = {
   company_tag: "PG",
   is_active: true,
   mer_code: "",
+  user: "",
 };
 
 export default function StoreSetupPage() {
@@ -72,6 +80,7 @@ export default function StoreSetupPage() {
   const [storeDirectory, setStoreDirectory] = useState<StoreDirectoryEntry[]>(
     [],
   );
+  const [userOptions, setUserOptions] = useState<UserOption[]>([]);
   const [form, setForm] = useState<StoreForm>(initialForm);
   const [selectedArea, setSelectedArea] = useState("");
   const [selectedChanel, setSelectedChanel] = useState("");
@@ -88,11 +97,11 @@ export default function StoreSetupPage() {
 
   const fetchStores = async () => {
     setLoading(true);
-    const [pgStoresResult, directoryResult] = await Promise.all([
+    const [pgStoresResult, directoryResult, usersResult] = await Promise.all([
       supabase
         .from("pg_stores")
         .select(
-          "id, store_code, store_name, area, company_tag, is_active, created_at, mer_code, chanel, account, province, region, img_store, store_type, address, phone, latitude, longitude",
+          "id, store_code, store_name, area, company_tag, is_active, created_at, mer_code, user, chanel, account, province, region, img_store, store_type, address, phone, latitude, longitude",
         )
         .order("id", { ascending: false }),
       supabase
@@ -101,7 +110,15 @@ export default function StoreSetupPage() {
           "id, area, chanel, account, store_name, store_code, province, region, img_store, store_type, address, phone, latitude, longitude",
         )
         .order("area", { ascending: true }),
+      supabase
+        .from("user_profiles")
+        .select("username, display_name")
+        .order("display_name", { ascending: true }),
     ]);
+
+    if (!usersResult.error) {
+      setUserOptions((usersResult.data || []) as UserOption[]);
+    }
 
     if (pgStoresResult.error) {
       await showError(
@@ -196,7 +213,13 @@ export default function StoreSetupPage() {
     if (!query) return stores;
 
     return stores.filter((store) =>
-      [store.store_code, store.store_name, store.area, store.company_tag]
+      [
+        store.store_code,
+        store.store_name,
+        store.area,
+        store.company_tag,
+        store.user || "",
+      ]
         .join(" ")
         .toLowerCase()
         .includes(query),
@@ -240,12 +263,30 @@ export default function StoreSetupPage() {
       company_tag: store.company_tag,
       is_active: store.is_active,
       mer_code: store.mer_code || "",
+      user: store.user || "",
     });
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!selectedStore?.area?.trim() || !form.mer_code.trim()) return;
+    if (
+      !selectedStore?.area?.trim() ||
+      !form.mer_code.trim() ||
+      !form.user.trim()
+    )
+      return;
+
+    // ร้านเดียวกันซ้ำได้ แต่ต้องไม่ซ้ำ User เดิม
+    const duplicate = stores.some(
+      (store) =>
+        store.id !== editingStoreId &&
+        store.store_code === selectedStore.store_code &&
+        store.user === form.user.trim(),
+    );
+    if (duplicate) {
+      await showError("ข้อมูลซ้ำ", "User นี้ถูกเพิ่มในร้านค้านี้แล้ว");
+      return;
+    }
 
     setSaving(true);
     let uploadedFilePath: string | null = null;
@@ -286,6 +327,7 @@ export default function StoreSetupPage() {
         company_tag: form.company_tag.trim(),
         is_active: form.is_active,
         mer_code: form.mer_code.trim(),
+        user: form.user.trim(),
         chanel: selectedStore.chanel,
         account: selectedStore.account,
         province: selectedStore.province,
@@ -303,14 +345,14 @@ export default function StoreSetupPage() {
             .update(storeData)
             .eq("id", editingStoreId)
             .select(
-              "id, store_code, store_name, area, company_tag, is_active, created_at, mer_code, chanel, account, province, region, img_store, store_type, address, phone, latitude, longitude",
+              "id, store_code, store_name, area, company_tag, is_active, created_at, mer_code, user, chanel, account, province, region, img_store, store_type, address, phone, latitude, longitude",
             )
             .single()
         : await supabase
             .from("pg_stores")
             .insert(storeData)
             .select(
-              "id, store_code, store_name, area, company_tag, is_active, created_at, mer_code, chanel, account, province, region, img_store, store_type, address, phone, latitude, longitude",
+              "id, store_code, store_name, area, company_tag, is_active, created_at, mer_code, user, chanel, account, province, region, img_store, store_type, address, phone, latitude, longitude",
             )
             .single();
 
@@ -513,6 +555,24 @@ export default function StoreSetupPage() {
               </select>
             </label>
             <label className="space-y-1.5 text-xs font-semibold text-slate-600">
+              User ผู้ดูแลร้าน
+              <select
+                required
+                value={form.user}
+                onChange={(event) =>
+                  setForm({ ...form, user: event.target.value })
+                }
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-normal text-slate-900 outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
+              >
+                <option value="">เลือก User</option>
+                {userOptions.map((user) => (
+                  <option key={user.username} value={user.username}>
+                    {user.display_name || user.username} ({user.username})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="space-y-1.5 text-xs font-semibold text-slate-600">
               Mer Code สำหรับกลุ่มจัดรายการ
               <input
                 required
@@ -618,7 +678,8 @@ export default function StoreSetupPage() {
                 disabled={
                   saving ||
                   !selectedStore?.area?.trim() ||
-                  !form.mer_code.trim()
+                  !form.mer_code.trim() ||
+                  !form.user
                 }
                 className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
               >
@@ -689,6 +750,7 @@ export default function StoreSetupPage() {
                     <th className="px-5 py-3 sm:px-6">รหัสร้าน</th>
                     <th className="px-5 py-3">ชื่อร้าน</th>
                     <th className="px-5 py-3">Area</th>
+                    <th className="px-5 py-3">User</th>
                     <th className="px-5 py-3">Mer Code</th>
                     <th className="px-5 py-3">บริษัท</th>
                     <th className="px-5 py-3">สถานะ</th>
@@ -706,6 +768,7 @@ export default function StoreSetupPage() {
                         {store.store_name}
                       </td>
                       <td className="px-5 py-3">{store.area}</td>
+                      <td className="px-5 py-3">{store.user}</td>
                       <td className="px-5 py-3">{store.mer_code}</td>
                       <td className="px-5 py-3">{store.company_tag}</td>
                       <td className="px-5 py-3">
