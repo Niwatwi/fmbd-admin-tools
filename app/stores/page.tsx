@@ -397,7 +397,12 @@ export default function StoreSetupPage() {
         if (removeError) cleanupErrors.push(removeError.message);
       }
 
-      const message = error instanceof Error ? error.message : String(error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : typeof error === "object" && error && "message" in error
+            ? String((error as { message: unknown }).message)
+            : String(error);
       await showError(
         "บันทึกร้านค้าไม่สำเร็จ",
         cleanupErrors.length
