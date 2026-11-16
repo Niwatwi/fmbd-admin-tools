@@ -1,6 +1,11 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
+import {
+  ensureSharedPasswordReadyAction,
+  getSharedUserAction,
+  updateSharedUserAction,
+} from "@/app/users/actions";
 import { useRouter, useParams } from "next/navigation";
 import { showError, showSuccess } from "@/lib/notifications";
 import {
@@ -21,6 +26,7 @@ export default function EditUserPage() {
 
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
+  const [changePassword, setChangePassword] = useState(false);
 
   // States สำหรับระเบียบข้อมูลฟอร์ม
   const [formData, setFormData] = useState({
@@ -54,21 +60,17 @@ export default function EditUserPage() {
       if (!userId) return;
       setFetchLoading(true);
 
-      const { data, error } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
+      const { data, error } = await getSharedUserAction(Number(userId));
 
       if (error) {
-        await showError("ไม่พบข้อมูลพนักงาน", error.message);
+        await showError("ไม่พบข้อมูลพนักงาน", error);
         router.push("/users");
       } else if (data) {
         setFormData({
           customer_id: data.customer_id || "",
           area: data.area || "ADMIN",
           username: data.username || "",
-          password_text: data.password_text || "",
+          password_text: "",
           display_name: data.display_name || "",
           company_tag: data.company_tag || "ADMIN",
           email: data.email || "",
@@ -78,6 +80,7 @@ export default function EditUserPage() {
           base_salary: data.base_salary || "",
           is_active: data.is_active ?? true,
         });
+        setChangePassword(false);
         if (data.image_url) {
           setExistingImageUrl(data.image_url);
           setImagePreview(data.image_url);
@@ -164,6 +167,10 @@ export default function EditUserPage() {
     setLoading(true);
 
     try {
+      if (formData.password_text) {
+        const readiness = await ensureSharedPasswordReadyAction();
+        if (readiness.error) throw new Error(readiness.error);
+      }
       let finalImageUrl = existingImageUrl || "";
 
       // ถ้าพนักงานมีการอัพโหลดหรือถ่ายรูปภาพใหม่เข้ามา ให้ทำงานส่งเข้า Storage
@@ -187,15 +194,15 @@ export default function EditUserPage() {
       }
 
       // อัปเดตข้อมูลพนักงานในตารางโดยอ้างอิงจาก ID
-      const { error: updateError } = await supabase
-        .from("user_profiles")
-        .update({
+      const { error: updateError } = await updateSharedUserAction(
+        Number(userId),
+        {
           ...formData,
           image_url: finalImageUrl,
-        })
-        .eq("id", userId);
+        },
+      );
 
-      if (updateError) throw updateError;
+      if (updateError) throw new Error(updateError);
 
       await showSuccess("อัปเดตข้อมูลพนักงานเรียบร้อยแล้ว");
       router.push("/users");
@@ -398,19 +405,48 @@ export default function EditUserPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
-                  Password Text
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={changePassword}
+                    onChange={(event) => {
+                      setChangePassword(event.target.checked);
+                      setFormData((current) => ({
+                        ...current,
+                        password_text: "",
+                      }));
+                    }}
+                  />
+                  เปลี่ยนรหัสผ่านของบัญชีนี้
                 </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="รหัสผ่านเข้าใช้งาน"
-                  className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
-                  value={formData.password_text}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password_text: e.target.value })
-                  }
-                />
+                {changePassword && (
+                  <div className="mt-2">
+                    <label
+                      htmlFor="new-user-password"
+                      className="mb-2 block text-xs font-bold text-slate-700"
+                    >
+                      รหัสผ่านใหม่ (8–128 ตัวอักษร)
+                    </label>
+                    <input
+                      id="new-user-password"
+                      name="new-account-password"
+                      type="password"
+                      autoComplete="new-password"
+                      minLength={8}
+                      maxLength={128}
+                      required
+                      placeholder="กรอกรหัสผ่านใหม่"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 font-medium text-slate-800 outline-none transition focus:bg-white focus:ring-2 focus:ring-blue-500"
+                      value={formData.password_text}
+                      onChange={(event) =>
+                        setFormData({
+                          ...formData,
+                          password_text: event.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                )}
               </div>
 
               <div>

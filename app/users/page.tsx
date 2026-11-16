@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import {
+  deleteSharedUserAction,
+  listSharedUsersAction,
+  setSharedUserActiveAction,
+} from "./actions";
 import { confirmAction, showError, showSuccess } from "@/lib/notifications";
 import {
   Search,
@@ -35,13 +39,10 @@ export default function UserListPage() {
   // 1. ดึงข้อมูลพนักงานทั้งหมดจาก Supabase
   const fetchUsers = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .select("*")
-      .order("id", { ascending: false });
+    const { data, error } = await listSharedUsersAction();
 
     if (error) {
-      await showError("ดึงข้อมูลไม่สำเร็จ", error.message);
+      await showError("ดึงข้อมูลไม่สำเร็จ", error);
     } else {
       setUsers(data || []);
     }
@@ -54,13 +55,10 @@ export default function UserListPage() {
 
   // 2. ฟังก์ชันเปิด-ปิด สถานะพนักงาน (Toggle Active)
   const toggleStatus = async (id: number, currentStatus: boolean) => {
-    const { error } = await supabase
-      .from("user_profiles")
-      .update({ is_active: !currentStatus })
-      .eq("id", id);
+    const { error } = await setSharedUserActiveAction(id, !currentStatus);
 
     if (error) {
-      await showError("อัปเดตสถานะไม่สำเร็จ", error.message);
+      await showError("อัปเดตสถานะไม่สำเร็จ", error);
     } else {
       // อัปเดต State ในหน้าจอทันที ไม่ต้องโหลดหน้าใหม่
       setUsers(
@@ -80,13 +78,10 @@ export default function UserListPage() {
     );
 
     if (confirmation.isConfirmed) {
-      const { error } = await supabase
-        .from("user_profiles")
-        .delete()
-        .eq("id", id);
+      const { error } = await deleteSharedUserAction(id);
 
       if (error) {
-        await showError("ลบข้อมูลไม่สำเร็จ", error.message);
+        await showError("ลบข้อมูลไม่สำเร็จ", error);
       } else {
         setUsers(users.filter((u) => u.id !== id));
         await showSuccess("ลบข้อมูลเรียบร้อยแล้ว");

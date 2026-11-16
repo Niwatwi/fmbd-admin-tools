@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { listSharedUserOptionsAction } from "@/app/users/actions";
 import { showError, showSuccess } from "@/lib/notifications";
 
 interface PgStore {
@@ -110,14 +111,13 @@ export default function StoreSetupPage() {
           "id, area, chanel, account, store_name, store_code, province, region, img_store, store_type, address, phone, latitude, longitude",
         )
         .order("area", { ascending: true }),
-      supabase
-        .from("user_profiles")
-        .select("username, display_name")
-        .order("display_name", { ascending: true }),
+      listSharedUserOptionsAction(),
     ]);
 
     if (!usersResult.error) {
       setUserOptions((usersResult.data || []) as UserOption[]);
+    } else {
+      await showError("โหลดรายชื่อผู้ใช้ไม่สำเร็จ", usersResult.error);
     }
 
     if (pgStoresResult.error) {

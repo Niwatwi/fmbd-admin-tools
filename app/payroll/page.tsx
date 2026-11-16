@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
+import { getPayrollUserAction } from "@/app/users/actions";
 import { showError, showWarning } from "@/lib/notifications";
 import {
   Search,
@@ -158,13 +159,9 @@ export default function PayrollSummaryPage() {
         const logUsername = filters.empId || typedLogs[0].username;
 
         // 🟢 ✨ เจาะลึกค้นหาประวัติพนักงานโดยใช้ Username หลัก เพื่อหนีปัญหาเว้นวรรคชื่อไม่ตรงกัน
-        const { data: profile, error: profileError } = await supabase
-          .from("user_profiles")
-          .select(
-            "username, display_name, employee_id, company_tag, base_salary, employment_type, image_url",
-          )
-          .eq("username", logUsername)
-          .maybeSingle();
+        const { data: profile, error: profileError } =
+          await getPayrollUserAction(logUsername);
+        if (profileError) throw new Error(profileError);
 
         if (profile) {
           setEmpInfo({

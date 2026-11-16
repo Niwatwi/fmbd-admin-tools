@@ -35,19 +35,19 @@ export async function middleware(request: NextRequest) {
   );
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // ด่านตรวจ Login
   // ปล่อยผ่านถ้าเป็นหน้า /login
   const isAuthPage = request.nextUrl.pathname === "/login";
 
-  if (!session && !isAuthPage) {
+  if (!user && !isAuthPage) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
   // ถ้า Login แล้ว ห้ามกลับไปหน้า /login
-  if (session && isAuthPage) {
+  if (user && isAuthPage) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

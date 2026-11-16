@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
+import {
+  createSharedUserAction,
+  ensureSharedPasswordReadyAction,
+} from "@/app/users/actions";
 import { useRouter } from "next/navigation";
 import { showError, showSuccess } from "@/lib/notifications";
 import {
@@ -254,6 +258,8 @@ export default function CreateUserPage() {
     setLoading(true);
 
     try {
+      const readiness = await ensureSharedPasswordReadyAction();
+      if (readiness.error) throw new Error(readiness.error);
       let finalImageUrl = "";
 
       // ตรวจเช็คว่ามีการถ่ายรูปหรือเลือกรูปภาพไว้ไหม ถ้ามีให้ทำงานส่งเข้า Storage ก่อน
@@ -283,16 +289,12 @@ export default function CreateUserPage() {
       }
 
       // นำชุดข้อมูลพร้อมลิงก์ภาพ URL ไปฝังลงในตารางหลัก user_profiles
-      const { error: insertError } = await supabase
-        .from("user_profiles")
-        .insert([
-          {
-            ...formData,
-            image_url: finalImageUrl, // เก็บในแบบ URL
-          },
-        ]);
+      const { error: insertError } = await createSharedUserAction({
+        ...formData,
+        image_url: finalImageUrl,
+      });
 
-      if (insertError) throw insertError;
+      if (insertError) throw new Error(insertError);
 
       await showSuccess(
         "บันทึกข้อมูลสำเร็จ",
@@ -499,11 +501,14 @@ export default function CreateUserPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-2">
-                  Password Text
+                  รหัสผ่าน
                 </label>
                 <input
-                  type="text"
+                  type="password"
                   required
+                  minLength={8}
+                  maxLength={128}
+                  autoComplete="new-password"
                   placeholder="กำหนดรหัสผ่านเข้าใช้งาน"
                   className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 transition"
                   value={formData.password_text}
