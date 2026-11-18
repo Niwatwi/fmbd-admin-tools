@@ -211,6 +211,11 @@ export async function deleteSharedUserAction(id: number) {
     const { database, profile } = await requireSharedAdmin();
     if (!Number.isInteger(id) || id <= 0 || id === profile.id)
       throw new Error("ไม่สามารถลบบัญชีนี้ได้");
+    const { error: accountError } = await database
+      .from("koe_accounts")
+      .delete()
+      .eq("user_id", id);
+    if (accountError) throw accountError;
     const { data, error } = await database
       .from("user_profiles")
       .delete()
